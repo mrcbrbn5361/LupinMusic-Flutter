@@ -32,7 +32,7 @@ class _MusicCardState extends State<MusicCard> {
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
+          duration: const Duration(milliseconds: 200),
           curve: Curves.easeOut,
           transform: Matrix4.translationValues(0, _isHovered ? -4 : 0, 0),
           decoration: BoxDecoration(
@@ -40,81 +40,81 @@ class _MusicCardState extends State<MusicCard> {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: active ? LupinTheme.accentPink : LupinTheme.borderSubtle,
-              width: 1.0,
+              width: 1.2,
             ),
             boxShadow: active
-                ? [
+                ? const [
                     BoxShadow(
-                      color: widget.isPlaying
-                          ? LupinTheme.accentPinkGlow
-                          : LupinTheme.accentPurpleGlow,
-                      blurRadius: 24,
-                      offset: const Offset(0, 6),
+                      color: LupinTheme.accentPinkGlow,
+                      blurRadius: 20,
+                      offset: Offset(0, 6),
                     )
                   ]
                 : [],
           ),
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
             children: [
-              // 1:1 Aspect Ratio Square Album Thumbnail
+              // 1:1 Aspect Ratio Square with YouTube black bars cropped out via 1.34x scale
               AspectRatio(
                 aspectRatio: 1.0,
-                child: Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Stack(
+                    children: [
+                      Container(
                         color: const Color(0xFF17072A),
                         width: double.infinity,
                         height: double.infinity,
-                        child: Image.network(
-                          widget.track.thumbnailUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (ctx, err, stack) => const Center(
-                            child: Icon(Icons.music_note, color: LupinTheme.accentPurple, size: 36),
+                        child: Transform.scale(
+                          scale: 1.34, // Crops away 45px black letterboxing bars
+                          child: Image.network(
+                            widget.track.thumbnailUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (ctx, err, stack) => const Center(
+                              child: Icon(Icons.music_note, color: LupinTheme.accentPink, size: 36),
+                            ),
                           ),
                         ),
                       ),
-                    ),
 
-                    // Play Button Overlay on Hover or Playing
-                    AnimatedPositioned(
-                      duration: const Duration(milliseconds: 200),
-                      right: 10,
-                      bottom: active ? 10 : 0,
-                      child: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 200),
-                        opacity: active ? 1.0 : 0.0,
-                        child: Container(
-                          width: 42,
-                          height: 42,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LupinTheme.neonGradient,
-                            boxShadow: const [
-                              BoxShadow(
-                                color: LupinTheme.accentPinkGlow,
-                                blurRadius: 14,
-                                spreadRadius: 1,
-                              )
-                            ],
-                          ),
-                          child: Icon(
-                            widget.isPlaying ? Icons.equalizer : Icons.play_arrow,
-                            color: Colors.white,
-                            size: 22,
+                      // Hover/Playing Neon Play Button Overlay
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 180),
+                        right: 8,
+                        bottom: active ? 8 : -40,
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 180),
+                          opacity: active ? 1.0 : 0.0,
+                          child: Container(
+                            width: 38,
+                            height: 38,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LupinTheme.neonGradient,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: LupinTheme.accentPinkGlow,
+                                  blurRadius: 12,
+                                  spreadRadius: 1,
+                                )
+                              ],
+                            ),
+                            child: Icon(
+                              widget.isPlaying ? Icons.equalizer : Icons.play_arrow,
+                              color: Colors.white,
+                              size: 20,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
 
               // Title
               Text(
@@ -124,11 +124,11 @@ class _MusicCardState extends State<MusicCard> {
                 style: const TextStyle(
                   color: LupinTheme.textPrimary,
                   fontWeight: FontWeight.w600,
-                  fontSize: 14,
+                  fontSize: 13.5,
                 ),
               ),
 
-              const SizedBox(height: 4),
+              const SizedBox(height: 3),
 
               // Artist
               Text(
@@ -137,7 +137,7 @@ class _MusicCardState extends State<MusicCard> {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: LupinTheme.textSecondary,
-                  fontSize: 12,
+                  fontSize: 11.5,
                 ),
               ),
             ],

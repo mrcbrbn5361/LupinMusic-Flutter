@@ -45,16 +45,21 @@ class _SearchViewState extends State<SearchView> {
   @override
   Widget build(BuildContext context) {
     final player = Provider.of<PlayerProvider>(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 700;
+    final crossAxisCount = isMobile
+        ? 2
+        : (screenWidth > 1300 ? 6 : (screenWidth > 1050 ? 5 : 4));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Content Header Search Bar
         Padding(
-          padding: const EdgeInsets.fromLTRB(32, 20, 32, 16),
+          padding: EdgeInsets.fromLTRB(isMobile ? 16 : 32, isMobile ? 12 : 20, isMobile ? 16 : 32, 14),
           child: Container(
             constraints: const BoxConstraints(maxWidth: 540),
-            height: 42,
+            height: isMobile ? 40 : 42,
             decoration: BoxDecoration(
               color: const Color(0xC018082C),
               borderRadius: BorderRadius.circular(999),
@@ -67,19 +72,24 @@ class _SearchViewState extends State<SearchView> {
                 )
               ],
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 14),
             child: Row(
               children: [
                 const Icon(Icons.search, color: LupinTheme.textMuted, size: 18),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
                     controller: _searchController,
                     onSubmitted: _performSearch,
-                    style: const TextStyle(color: Colors.white, fontSize: 13.5),
-                    decoration: const InputDecoration(
-                      hintText: 'Şarkı, sanatçı veya albüm ara... (Boşluk tuşu: Oynat/Duraklat)',
-                      hintStyle: TextStyle(color: LupinTheme.textDim, fontSize: 13.5),
+                    style: TextStyle(color: Colors.white, fontSize: isMobile ? 12.5 : 13.5),
+                    decoration: InputDecoration(
+                      hintText: isMobile
+                          ? 'Şarkı, sanatçı veya albüm ara...'
+                          : 'Şarkı, sanatçı veya albüm ara... (Boşluk tuşu: Oynat/Duraklat)',
+                      hintStyle: TextStyle(
+                        color: LupinTheme.textDim,
+                        fontSize: isMobile ? 12.5 : 13.5,
+                      ),
                       border: InputBorder.none,
                       isDense: true,
                     ),
@@ -102,26 +112,30 @@ class _SearchViewState extends State<SearchView> {
         // Search Results Section
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(32, 4, 32, 20),
+            padding: EdgeInsets.fromLTRB(isMobile ? 16 : 32, 4, isMobile ? 16 : 32, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Title matching Electron: 🔍 "ohal" için Arama Sonuçları
                 Row(
                   children: [
-                    const Icon(Icons.search, color: Colors.white, size: 20),
+                    const Icon(Icons.search, color: Colors.white, size: 18),
                     const SizedBox(width: 8),
-                    Text(
-                      '"$_currentQuery" için Arama Sonuçları',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Text(
+                        '"$_currentQuery" için Arama Sonuçları',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: isMobile ? 15 : 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: isMobile ? 12 : 18),
 
                 Expanded(
                   child: _isSearching
@@ -136,12 +150,12 @@ class _SearchViewState extends State<SearchView> {
                               ),
                             )
                           : GridView.builder(
-                              gridDelegate:
-                                  const SliverGridDelegateWithMaxCrossAxisExtent(
-                                maxCrossAxisExtent: 200,
-                                childAspectRatio: 0.72,
-                                crossAxisSpacing: 20,
-                                mainAxisSpacing: 20,
+                              physics: const BouncingScrollPhysics(),
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: crossAxisCount,
+                                childAspectRatio: isMobile ? 0.75 : 0.72,
+                                crossAxisSpacing: isMobile ? 12 : 18,
+                                mainAxisSpacing: isMobile ? 12 : 18,
                               ),
                               itemCount: _results.length,
                               itemBuilder: (ctx, index) {

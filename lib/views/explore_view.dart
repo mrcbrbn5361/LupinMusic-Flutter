@@ -38,9 +38,14 @@ class _ExploreViewState extends State<ExploreView> {
   @override
   Widget build(BuildContext context) {
     final player = Provider.of<PlayerProvider>(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 700;
+    final crossAxisCount = isMobile
+        ? 2
+        : (screenWidth > 1300 ? 6 : (screenWidth > 1050 ? 5 : 4));
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 24, 32, 20),
+      padding: EdgeInsets.fromLTRB(isMobile ? 16 : 32, isMobile ? 16 : 24, isMobile ? 16 : 32, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -48,35 +53,35 @@ class _ExploreViewState extends State<ExploreView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
-                children: [
-                  Text(
-                    '🔥 Keşfet — Popüler Parçalar',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ],
+              Text(
+                '🔥 Keşfet — Popüler Parçalar',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: isMobile ? 16 : 20,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
               ),
               if (_trendingTracks.isNotEmpty)
                 ElevatedButton.icon(
                   onPressed: () {
                     player.playTrack(_trendingTracks.first, newQueue: _trendingTracks);
                   },
-                  icon: const Icon(Icons.play_arrow, size: 18),
-                  label: const Text('Hepsini Oynat'),
+                  icon: const Icon(Icons.play_arrow, size: 16),
+                  label: Text(isMobile ? 'Oynat' : 'Hepsini Oynat'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: LupinTheme.accentPink,
                     foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isMobile ? 12 : 16,
+                      vertical: isMobile ? 8 : 12,
+                    ),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: isMobile ? 14 : 20),
 
           Expanded(
             child: _isLoading
@@ -84,11 +89,12 @@ class _ExploreViewState extends State<ExploreView> {
                     child: CircularProgressIndicator(color: LupinTheme.accentPink),
                   )
                 : GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 200,
-                      childAspectRatio: 0.72,
-                      crossAxisSpacing: 20,
-                      mainAxisSpacing: 20,
+                    physics: const BouncingScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      childAspectRatio: isMobile ? 0.75 : 0.72,
+                      crossAxisSpacing: isMobile ? 12 : 18,
+                      mainAxisSpacing: isMobile ? 12 : 18,
                     ),
                     itemCount: _trendingTracks.length,
                     itemBuilder: (ctx, index) {

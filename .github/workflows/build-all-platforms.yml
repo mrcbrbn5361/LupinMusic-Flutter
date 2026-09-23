@@ -32,11 +32,17 @@ jobs:
       - name: Generate Android scaffold
         run: |
           flutter create --platforms=android --project-name lupin_music --org com.lupin.music .
-          # Ensure INTERNET and audio wake permissions
-          sed -i '/<manifest/a \    <uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.WAKE_LOCK"/>' android/app/src/main/AndroidManifest.xml
-          # Set minSdkVersion to 21
-          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle || true
-          sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 21/g' android/app/build.gradle || true
+          if [ -f android/app/src/main/AndroidManifest.xml ]; then
+            sed -i 's/<manifest xmlns:android="http:\/\/schemas.android.com\/apk\/res\/android">/<manifest xmlns:android="http:\/\/schemas.android.com\/apk\/res\/android">\n    <uses-permission android:name="android.permission.INTERNET"\/>\n    <uses-permission android:name="android.permission.WAKE_LOCK"\/>/' android/app/src/main/AndroidManifest.xml || true
+          fi
+          if [ -f android/app/build.gradle ]; then
+            sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle || true
+            sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 21/g' android/app/build.gradle || true
+          fi
+          if [ -f android/app/build.gradle.kts ]; then
+            sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle.kts || true
+            sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 21/g' android/app/build.gradle.kts || true
+          fi
 
       - name: Get Dependencies
         run: flutter pub get
@@ -86,7 +92,11 @@ jobs:
       - name: Package Windows Binary
         shell: pwsh
         run: |
-          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "LupinMusic-v1.0.0-windows-x64.zip" -Force
+          if (Test-Path "build\windows\x64\runner\Release") {
+            Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "LupinMusic-v1.0.0-windows-x64.zip" -Force
+          } elseif (Test-Path "build\windows\runner\Release") {
+            Compress-Archive -Path "build\windows\runner\Release\*" -DestinationPath "LupinMusic-v1.0.0-windows-x64.zip" -Force
+          }
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
@@ -116,9 +126,12 @@ jobs:
         run: |
           flutter config --enable-macos-desktop
           flutter create --platforms=macos --project-name lupin_music --org com.lupin.music .
-          # Ensure network client entitlement
-          sed -i '' 's/<\/dict>/    <key>com.apple.security.network.client<\/key><true\/>\n<\/dict>/' macos/Runner/Release.entitlements || true
-          sed -i '' 's/<\/dict>/    <key>com.apple.security.network.client<\/key><true\/>\n<\/dict>/' macos/Runner/DebugProfile.entitlements || true
+          if [ -f macos/Runner/Release.entitlements ]; then
+            sed -i '' 's/<\/dict>/    <key>com.apple.security.network.client<\/key><true\/>\n<\/dict>/' macos/Runner/Release.entitlements || true
+          fi
+          if [ -f macos/Runner/DebugProfile.entitlements ]; then
+            sed -i '' 's/<\/dict>/    <key>com.apple.security.network.client<\/key><true\/>\n<\/dict>/' macos/Runner/DebugProfile.entitlements || true
+          fi
 
       - name: Get Dependencies
         run: flutter pub get
@@ -128,9 +141,11 @@ jobs:
 
       - name: Package macOS Application
         run: |
-          cd build/macos/Build/Products/Release
-          zip -r -y ../../../../../LupinMusic-v1.0.0-macos.zip lupin_music.app
-          cd ../../../../..
+          if [ -d build/macos/Build/Products/Release/lupin_music.app ]; then
+            cd build/macos/Build/Products/Release
+            zip -r -y ../../../../../LupinMusic-v1.0.0-macos.zip lupin_music.app
+            cd ../../../../..
+          fi
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
@@ -169,9 +184,11 @@ jobs:
       - name: Package iOS IPA & App
         run: |
           mkdir -p Payload
-          cp -r build/ios/iphoneos/Runner.app Payload/
-          zip -r -y LupinMusic-v1.0.0-ios-unsigned.ipa Payload/
-          zip -r -y LupinMusic-v1.0.0-ios-app.zip build/ios/iphoneos/Runner.app
+          if [ -d build/ios/iphoneos/Runner.app ]; then
+            cp -r build/ios/iphoneos/Runner.app Payload/
+            zip -r -y LupinMusic-v1.0.0-ios-unsigned.ipa Payload/
+            zip -r -y LupinMusic-v1.0.0-ios-app.zip build/ios/iphoneos/Runner.app
+          fi
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2

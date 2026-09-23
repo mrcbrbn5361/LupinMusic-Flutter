@@ -42,7 +42,7 @@ class _ExploreViewState extends State<ExploreView> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(32, 24, 32, 20),
       child: Column(
-        crossAxisAlignment: CrossAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Section Title matching Electron: 🔥 Keşfet — Popüler Parçalar
           Row(

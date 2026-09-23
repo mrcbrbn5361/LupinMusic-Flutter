@@ -1,0 +1,182 @@
+name: Build Cross-Platform Apps (Windows, macOS, Android, iOS)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.x'
+          channel: 'stable'
+          cache: true
+
+      - name: Generate Android scaffold
+        run: |
+          flutter create --platforms=android --org com.lupin.music .
+          # Ensure INTERNET permission in AndroidManifest.xml
+          sed -i '/<manifest/a \    <uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.WAKE_LOCK"/>' android/app/src/main/AndroidManifest.xml
+          # Set minSdkVersion to 21
+          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle || true
+          sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 21/g' android/app/build.gradle || true
+
+      - name: Get Dependencies
+        run: flutter pub get
+
+      - name: Build Android Release APK
+        run: flutter build apk --release
+
+      - name: Prepare APK binary
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk LupinMusic-v1.0.0-android.apk
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/heads/main')
+        with:
+          tag_name: v1.0.0
+          files: LupinMusic-v1.0.0-android.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-windows:
+    name: Build Windows Application
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.x'
+          channel: 'stable'
+          cache: true
+
+      - name: Generate Windows scaffold
+        run: |
+          flutter config --enable-windows-desktop
+          flutter create --platforms=windows --org com.lupin.music .
+
+      - name: Get Dependencies
+        run: flutter pub get
+
+      - name: Build Windows Release
+        run: flutter build windows --release
+
+      - name: Package Windows Binary
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "LupinMusic-v1.0.0-windows-x64.zip" -Force
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/heads/main')
+        with:
+          tag_name: v1.0.0
+          files: LupinMusic-v1.0.0-windows-x64.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-macos:
+    name: Build macOS Application
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.x'
+          channel: 'stable'
+          cache: true
+
+      - name: Generate macOS scaffold
+        run: |
+          flutter config --enable-macos-desktop
+          flutter create --platforms=macos --org com.lupin.music .
+          # Ensure network client entitlement
+          sed -i '' 's/<\/dict>/    <key>com.apple.security.network.client<\/key><true\/>\n<\/dict>/' macos/Runner/Release.entitlements || true
+          sed -i '' 's/<\/dict>/    <key>com.apple.security.network.client<\/key><true\/>\n<\/dict>/' macos/Runner/DebugProfile.entitlements || true
+
+      - name: Get Dependencies
+        run: flutter pub get
+
+      - name: Build macOS Release
+        run: flutter build macos --release
+
+      - name: Package macOS Application
+        run: |
+          cd build/macos/Build/Products/Release
+          zip -r -y ../../../../../LupinMusic-v1.0.0-macos.zip lupin_music.app
+          cd ../../../../..
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/heads/main')
+        with:
+          tag_name: v1.0.0
+          files: LupinMusic-v1.0.0-macos.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-ios:
+    name: Build iOS Application
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.x'
+          channel: 'stable'
+          cache: true
+
+      - name: Generate iOS scaffold
+        run: |
+          flutter create --platforms=ios --org com.lupin.music .
+
+      - name: Get Dependencies
+        run: flutter pub get
+
+      - name: Build iOS (No Codesign)
+        run: flutter build ios --release --no-codesign
+
+      - name: Package iOS IPA & App
+        run: |
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r -y LupinMusic-v1.0.0-ios-unsigned.ipa Payload/
+          zip -r -y LupinMusic-v1.0.0-ios-app.zip build/ios/iphoneos/Runner.app
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/heads/main')
+        with:
+          tag_name: v1.0.0
+          files: |
+            LupinMusic-v1.0.0-ios-unsigned.ipa
+            LupinMusic-v1.0.0-ios-app.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

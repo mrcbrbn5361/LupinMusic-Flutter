@@ -10,6 +10,7 @@
 .svn/
 server/
 scripts/
+release/
 .env
 .env.*
 

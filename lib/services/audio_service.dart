@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 
 class AudioService {
@@ -10,8 +11,21 @@ class AudioService {
   Stream<double> get volumeStream => _player.volumeStream;
 
   Future<void> playUrl(String url) async {
-    await _player.setUrl(url);
-    await _player.play();
+    try {
+      await _player.stop();
+      await _player.setUrl(
+        url,
+        headers: {
+          'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+          'Referer': 'https://music.youtube.com/',
+        },
+      );
+      await _player.play();
+    } catch (e) {
+      debugPrint('[AudioService] Play error: $e');
+      rethrow;
+    }
   }
 
   Future<void> pause() async {

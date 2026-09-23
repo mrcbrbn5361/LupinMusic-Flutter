@@ -21,9 +21,10 @@ class PlayerProvider extends ChangeNotifier {
   bool _isMuted = false;
   bool _isShuffle = false;
   bool _isRepeat = false;
+  int _currentPlayId = 0;
 
   // 5-band Equalizer values (Hz -> dB level -10 to +10)
-  List<double> _eqBands = [0.0, 0.0, 0.0, 0.0, 0.0];
+  final List<double> _eqBands = [0.0, 0.0, 0.0, 0.0, 0.0];
 
   Track? get currentTrack => _currentTrack;
   List<Track> get queue => _queue;
@@ -57,13 +58,17 @@ class PlayerProvider extends ChangeNotifier {
       _isPlaying = state.playing;
       if (state.processingState == ProcessingState.completed) {
         onTrackEnded();
+      } else if (state.processingState == ProcessingState.ready) {
+        _isLoading = false;
       }
       notifyListeners();
     });
   }
 
   Future<void> playTrack(Track track, {List<Track>? newQueue}) async {
+    final thisPlayId = ++_currentPlayId;
     _isLoading = true;
+    _currentTrack = track;
     notifyListeners();
 
     if (newQueue != null) {
@@ -80,18 +85,29 @@ class PlayerProvider extends ChangeNotifier {
       _currentIndex = _queue.indexWhere((t) => t.id == track.id);
     }
 
-    _currentTrack = track;
-    notifyListeners();
+    try {
+      final streamUrl = await _ytService.getAudioStreamUrl(track.id);
+      if (thisPlayId != _currentPlayId) return;
 
-    final streamUrl = await _ytService.getAudioStreamUrl(track.id);
-    _isLoading = false;
-
-    if (streamUrl != null) {
-      _currentTrack = track.copyWith(streamUrl: streamUrl);
-      await _audioService.playUrl(streamUrl);
-      _discordService.updatePresence(_currentTrack!, _position);
+      if (streamUrl != null) {
+        _currentTrack = track.copyWith(streamUrl: streamUrl);
+        await _audioService.playUrl(streamUrl);
+        if (thisPlayId != _currentPlayId) return;
+        _isLoading = false;
+        _isPlaying = true;
+        _discordService.updatePresence(_currentTrack!, _position);
+      } else {
+        _isLoading = false;
+      }
+    } catch (e) {
+      debugPrint('[PlayerProvider] Play error: $e');
+      _isLoading = false;
+    } finally {
+      if (thisPlayId == _currentPlayId) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
-    notifyListeners();
   }
 
   Future<void> togglePlayPause() async {
@@ -133,7 +149,7 @@ class PlayerProvider extends ChangeNotifier {
   Future<void> nextTrack() async {
     if (_queue.isEmpty) return;
     if (_isShuffle) {
-      _currentIndex = (_currentIndex + 1) % _queue.length; // Random or next
+      _currentIndex = (_currentIndex + 1) % _queue.length;
     } else {
       _currentIndex = (_currentIndex + 1) % _queue.length;
     }

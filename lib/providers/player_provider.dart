@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:just_audio/just_audio.dart';
 import '../models/track.dart';
 import '../services/audio_service.dart';
 import '../services/youtube_service.dart';

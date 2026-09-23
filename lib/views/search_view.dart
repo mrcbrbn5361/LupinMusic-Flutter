@@ -37,7 +37,7 @@ class _SearchViewState extends State<SearchView> {
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
-        crossAxisAlignment: CrossAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Search Input Bar
           Container(

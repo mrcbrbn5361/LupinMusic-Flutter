@@ -39,7 +39,7 @@ class MusicCard extends StatelessWidget {
         ),
         padding: const EdgeInsets.all(12),
         child: Column(
-          crossAxisAlignment: CrossAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: Stack(

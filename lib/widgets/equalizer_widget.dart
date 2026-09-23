@@ -16,7 +16,7 @@ class EqualizerWidget extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: LupinTheme.glassDecoration(radius: 20),
       child: Column(
-        crossAxisAlignment: CrossAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(

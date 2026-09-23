@@ -48,7 +48,7 @@ class _ExploreViewState extends State<ExploreView> {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
-        crossAxisAlignment: CrossAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Banner / Hero
           Container(
@@ -66,7 +66,7 @@ class _ExploreViewState extends State<ExploreView> {
               children: [
                 Expanded(
                   child: Column(
-                    crossAxisAlignment: CrossAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
                         '⚡ TRENDING CYBER CHARTS',

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
 class LupinTheme {
-  static const Color background = Color(0FF090214);
-  static const Color surface = Color(0FF130B24);
-  static const Color surfaceLight = Color(0FF1E1238);
-  static const Color neonPink = Color(0FFEC4899);
-  static const Color neonPurple = Color(0FFA855F7);
-  static const Color neonCyan = Color(0FF06B6D4);
-  static const Color textPrimary = Color(0FFF8FAFC);
-  static const Color textSecondary = Color(0FF94A3B8);
+  static const Color background = Color(0xFF090214);
+  static const Color surface = Color(0xFF130B24);
+  static const Color surfaceLight = Color(0xFF1E1238);
+  static const Color neonPink = Color(0xFFEC4899);
+  static const Color neonPurple = Color(0xFFA855F7);
+  static const Color neonCyan = Color(0xFF06B6D4);
+  static const Color textPrimary = Color(0xFFF8FAFC);
+  static const Color textSecondary = Color(0xFF94A3B8);
   static const Color glassBorder = Color(0x33A855F7);
 
   static ThemeData get darkTheme {

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/track.dart';
 import '../providers/player_provider.dart';
 import '../services/youtube_service.dart';
+import '../widgets/music_card.dart';
 import '../theme/lupin_theme.dart';
 
 class SearchView extends StatefulWidget {
@@ -13,15 +14,26 @@ class SearchView extends StatefulWidget {
 }
 
 class _SearchViewState extends State<SearchView> {
-  final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController =
+      TextEditingController(text: 'ohal');
   final YouTubeService _ytService = YouTubeService();
   List<Track> _results = [];
   bool _isSearching = false;
+  String _currentQuery = 'ohal';
+
+  @override
+  void initState() {
+    super.initState();
+    _performSearch('ohal');
+  }
 
   Future<void> _performSearch(String query) async {
     if (query.trim().isEmpty) return;
-    setState(() => _isSearching = true);
-    final results = await _ytService.search(query);
+    setState(() {
+      _isSearching = true;
+      _currentQuery = query.trim();
+    });
+    final results = await _ytService.search(_currentQuery);
     if (mounted) {
       setState(() {
         _results = results;
@@ -34,124 +46,124 @@ class _SearchViewState extends State<SearchView> {
   Widget build(BuildContext context) {
     final player = Provider.of<PlayerProvider>(context);
 
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Search Input Bar
-          Container(
-            decoration: LupinTheme.glassDecoration(radius: 16),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Content Header Search Bar
+        Padding(
+          padding: const EdgeInsets.fromLTRB(32, 20, 32, 16),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 540),
+            height: 42,
+            decoration: BoxDecoration(
+              color: const Color(0xC018082C),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: LupinTheme.borderSubtle, width: 1.0),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
+                )
+              ],
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: TextField(
-              controller: _searchController,
-              onSubmitted: _performSearch,
-              style: const TextStyle(color: LupinTheme.textPrimary),
-              decoration: InputDecoration(
-                hintText: 'Search songs, artists, albums...',
-                hintStyle: const TextStyle(color: LupinTheme.textSecondary),
-                border: InputBorder.none,
-                icon: const Icon(Icons.search, color: LupinTheme.neonPink),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, color: LupinTheme.textSecondary),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _results = []);
-                        },
-                      )
-                    : null,
-              ),
+            child: Row(
+              children: [
+                const Icon(Icons.search, color: LupinTheme.textMuted, size: 18),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    onSubmitted: _performSearch,
+                    style: const TextStyle(color: Colors.white, fontSize: 13.5),
+                    decoration: const InputDecoration(
+                      hintText: 'Şarkı, sanatçı veya albüm ara... (Boşluk tuşu: Oynat/Duraklat)',
+                      hintStyle: TextStyle(color: LupinTheme.textDim, fontSize: 13.5),
+                      border: InputBorder.none,
+                      isDense: true,
+                    ),
+                  ),
+                ),
+                if (_searchController.text.isNotEmpty)
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    icon: const Icon(Icons.clear, color: LupinTheme.textMuted, size: 16),
+                    onPressed: () {
+                      _searchController.clear();
+                    },
+                  ),
+              ],
             ),
           ),
-          const SizedBox(height: 24),
-          if (_isSearching)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(32.0),
-                child: CircularProgressIndicator(color: LupinTheme.neonPink),
-              ),
-            )
-          else if (_results.isEmpty)
-            const Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+        ),
+
+        // Search Results Section
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(32, 4, 32, 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Title matching Electron: 🔍 "ohal" için Arama Sonuçları
+                Row(
                   children: [
-                    Icon(Icons.search_off, color: LupinTheme.textSecondary, size: 64),
-                    SizedBox(height: 12),
+                    const Icon(Icons.search, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
                     Text(
-                      'Search for your favorite tracks above',
-                      style: TextStyle(color: LupinTheme.textSecondary, fontSize: 14),
+                      '"$_currentQuery" için Arama Sonuçları',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
-              ),
-            )
-          else
-            Expanded(
-              child: ListView.builder(
-                itemCount: _results.length,
-                itemBuilder: (ctx, index) {
-                  final track = _results[index];
-                  final isCurrent = player.currentTrack?.id == track.id;
+                const SizedBox(height: 20),
 
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    decoration: BoxDecoration(
-                      color: isCurrent ? LupinTheme.surfaceLight : LupinTheme.surface.withOpacity(0.4),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isCurrent ? LupinTheme.neonPink : LupinTheme.glassBorder,
-                      ),
-                    ),
-                    child: ListTile(
-                      leading: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          track.thumbnailUrl,
-                          width: 48,
-                          height: 48,
-                          fit: BoxFit.cover,
-                          errorBuilder: (c, e, s) => const Icon(Icons.music_note, color: LupinTheme.neonPurple),
-                        ),
-                      ),
-                      title: Text(
-                        track.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: isCurrent ? LupinTheme.neonPink : LupinTheme.textPrimary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      subtitle: Text(
-                        track.artist,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: LupinTheme.textSecondary),
-                      ),
-                      trailing: IconButton(
-                        icon: Icon(
-                          isCurrent && player.isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill,
-                          color: LupinTheme.neonPink,
-                          size: 32,
-                        ),
-                        onPressed: () {
-                          // Play track and pass full search result list as queue in order!
-                          player.playTrack(track, newQueue: _results);
-                        },
-                      ),
-                      onTap: () {
-                        player.playTrack(track, newQueue: _results);
-                      },
-                    ),
-                  );
-                },
-              ),
+                Expanded(
+                  child: _isSearching
+                      ? const Center(
+                          child: CircularProgressIndicator(color: LupinTheme.accentPink),
+                        )
+                      : _results.isEmpty
+                          ? const Center(
+                              child: Text(
+                                'Sonuç bulunamadı',
+                                style: TextStyle(color: LupinTheme.textSecondary),
+                              ),
+                            )
+                          : GridView.builder(
+                              gridDelegate:
+                                  const SliverGridDelegateWithMaxCrossAxisExtent(
+                                maxCrossAxisExtent: 200,
+                                childAspectRatio: 0.72,
+                                crossAxisSpacing: 20,
+                                mainAxisSpacing: 20,
+                              ),
+                              itemCount: _results.length,
+                              itemBuilder: (ctx, index) {
+                                final track = _results[index];
+                                final isCurrent =
+                                    player.currentTrack?.id == track.id;
+
+                                return MusicCard(
+                                  track: track,
+                                  isPlaying: isCurrent && player.isPlaying,
+                                  onTap: () {
+                                    player.playTrack(track, newQueue: _results);
+                                  },
+                                );
+                              },
+                            ),
+                ),
+              ],
             ),
-        ],
-      ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -39,112 +39,71 @@ class _ExploreViewState extends State<ExploreView> {
   Widget build(BuildContext context) {
     final player = Provider.of<PlayerProvider>(context);
 
-    if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: LupinTheme.neonPink),
-      );
-    }
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(32, 24, 32, 20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAlignment.start,
         children: [
-          // Banner / Hero
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [LupinTheme.surface, LupinTheme.surfaceLight],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+          // Section Title matching Electron: 🔥 Keşfet — Popüler Parçalar
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Row(
+                children: [
+                  Text(
+                    '🔥 Keşfet — Popüler Parçalar',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
               ),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: LupinTheme.glassBorder),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '⚡ TRENDING CYBER CHARTS',
-                        style: TextStyle(
-                          color: LupinTheme.neonPink,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.5,
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Discover Top Music & Releases',
-                        style: TextStyle(
-                          color: LupinTheme.textPrimary,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: () {
-                          if (_trendingTracks.isNotEmpty) {
-                            player.playTrack(_trendingTracks.first, newQueue: _trendingTracks);
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: LupinTheme.neonPink,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.play_arrow),
-                            SizedBox(width: 4),
-                            Text('Play All'),
-                          ],
-                        ),
-                      )
-                    ],
+              if (_trendingTracks.isNotEmpty)
+                ElevatedButton.icon(
+                  onPressed: () {
+                    player.playTrack(_trendingTracks.first, newQueue: _trendingTracks);
+                  },
+                  icon: const Icon(Icons.play_arrow, size: 18),
+                  label: const Text('Hepsini Oynat'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: LupinTheme.accentPink,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
-                const Icon(Icons.graphic_eq, color: LupinTheme.neonPurple, size: 80),
-              ],
-            ),
+            ],
           ),
-          const SizedBox(height: 32),
-          const Text(
-            '🔥 Popular Track Stream',
-            style: TextStyle(
-              color: LupinTheme.textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 220,
-              childAspectRatio: 0.75,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-            ),
-            itemCount: _trendingTracks.length,
-            itemBuilder: (ctx, index) {
-              final track = _trendingTracks[index];
-              final isCurrent = player.currentTrack?.id == track.id;
-              return MusicCard(
-                track: track,
-                isPlaying: isCurrent,
-                onTap: () {
-                  player.playTrack(track, newQueue: _trendingTracks);
-                },
-              );
-            },
+          const SizedBox(height: 20),
+
+          Expanded(
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(color: LupinTheme.accentPink),
+                  )
+                : GridView.builder(
+                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 200,
+                      childAspectRatio: 0.72,
+                      crossAxisSpacing: 20,
+                      mainAxisSpacing: 20,
+                    ),
+                    itemCount: _trendingTracks.length,
+                    itemBuilder: (ctx, index) {
+                      final track = _trendingTracks[index];
+                      final isCurrent = player.currentTrack?.id == track.id;
+
+                      return MusicCard(
+                        track: track,
+                        isPlaying: isCurrent && player.isPlaying,
+                        onTap: () {
+                          player.playTrack(track, newQueue: _trendingTracks);
+                        },
+                      );
+                    },
+                  ),
           ),
         ],
       ),

@@ -35,7 +35,7 @@ class YouTubeService {
       // Use unthrottled mobile/TV clients (androidVr, tv, safari, ios) for instant sub-second resolution
       final manifest = await _yt.videos.streamsClient.getManifest(
         videoId,
-        ytClients: const [
+        ytClients: [
           YoutubeApiClient.androidVr,
           YoutubeApiClient.tv,
           YoutubeApiClient.safari,
